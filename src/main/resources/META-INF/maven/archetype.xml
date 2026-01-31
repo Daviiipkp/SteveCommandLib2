@@ -1,5 +1,5 @@
 <archetype>
-  <id>SteveCommandLib2</id>
+  <id>SteveCommandLib</id>
   <sources>
     <source>src/main/java/App.java</source>
   </sources>
