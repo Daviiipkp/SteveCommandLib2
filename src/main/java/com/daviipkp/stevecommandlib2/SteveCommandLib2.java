@@ -14,7 +14,7 @@ public class SteveCommandLib2 {
 
     private static ExecutorService pool;
 
-    private static long threadTPS = 50;
+    private static long threadTPS;
 
     private static long DELTA = 0;
     private static long lastTickTime = 0;
@@ -25,8 +25,9 @@ public class SteveCommandLib2 {
         SteveCommandLib2.debug = debug;
     }
 
-    public SteveCommandLib2(int nThreads) {
+    public SteveCommandLib2(int nThreads, int threadTPS) {
         pool = Executors.newFixedThreadPool(nThreads);
+        SteveCommandLib2.threadTPS = threadTPS;
         startMainThread();
     }
 
@@ -50,22 +51,22 @@ public class SteveCommandLib2 {
     }
     public static void tick(long tickDelta) {
         if(!queuedCommands.isEmpty()) {
-            QueuedCommand q = queuedCommands.get(0);
+            QueuedCommand q = queuedCommands.getFirst();
             if(!q.isFinished()){
                 if(!q.isRunning()){
                     q.start();
                 }
                 q.execute(tickDelta);
                 if(q.isFinished()) {
-                   queuedCommands.remove(0);
+                   queuedCommands.removeFirst();
                 }
             }else{
-                queuedCommands.remove(0);
+                queuedCommands.removeFirst();
             }
         }
 
-        if(!triggeredCommands.isEmpty()) {
-            triggeredCommands.stream().forEach((command) -> {
+        if(!triggeredCommands.isEmpty()) { 
+            triggeredCommands.forEach((command) -> {
                command.tick(tickDelta);
                if(command.isFinished())triggeredCommands.remove(command);
             });

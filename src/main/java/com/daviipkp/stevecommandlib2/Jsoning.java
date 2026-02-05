@@ -2,6 +2,7 @@ package com.daviipkp.stevecommandlib2;
 
 import com.daviipkp.stevecommandlib2.annotations.CommandDescribe;
 import com.daviipkp.stevecommandlib2.annotations.FieldDescribe;
+import com.daviipkp.stevecommandlib2.instance.Command;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.*;
@@ -19,11 +20,19 @@ public class Jsoning {
 
     private static final List<Class<? extends Annotation>> annotations = new ArrayList<>();
     private static final ObjectMapper MAPPER = createDefaultMapper();
+    private static final List<Class<? extends Command>> implementations = new ArrayList<>();
 
     static {
         MAPPER.registerModule(new JavaTimeModule());
-
         MAPPER.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    }
+
+    public static void registerCommandPackage(String packageName) {
+        implementations.addAll(getRegisteredCommands(packageName));
+    }
+
+    public static List<Class<? extends Command>> getLoadedCommands() {
+        return implementations;
     }
 
     private static ObjectMapper createDefaultMapper() {
@@ -40,6 +49,21 @@ public class Jsoning {
 
         return mapper;
     }
+
+    private static List<Class<? extends Command>> getRegisteredCommands(String... packages) {
+        List<Class<? extends Command>> list = new ArrayList<>();
+        for(String s : packages) {
+            for(Class<?> c : new Reflections(s).getTypesAnnotatedWith(CommandDescribe.class)) {
+                if(Command.class.isAssignableFrom(c)) {
+                    list.add(c.asSubclass(Command.class));
+                }else {
+                    System.out.println(">>> Ignoring command '" + c.getName() + "' because it does not extend Command class.");
+                }
+            }
+        }
+        return list;
+    }
+
     public static String stringify(Object object) {
         try {
             return MAPPER.writeValueAsString(object);
