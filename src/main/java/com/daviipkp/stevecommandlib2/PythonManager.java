@@ -6,6 +6,8 @@ import jep.SubInterpreter;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PythonManager {
 
@@ -23,11 +25,11 @@ public class PythonManager {
     }
 
     private static File scriptFolder;
-    private static final Map<String, ScriptInfo> loadedScripts = new HashMap<>();
+    private static final Map<String, ScriptInfo> loadedScripts = new ConcurrentHashMap<>();
 
     /**
-    * @param folder Folder to search for Python Scripts
-    */
+     * @param folder Folder to search for Python Scripts
+     */
     public static void setScriptFolder(File folder) {
         if (folder != null && folder.exists() && folder.isDirectory()) {
             scriptFolder = folder;
@@ -64,7 +66,7 @@ public class PythonManager {
                     }
                 }
                 loadedScripts.put(file.getName(), new ScriptInfo(file, requirements));
-                System.out.println("Loaded " + file.getName() + " needing: " + requirements);
+                SteveCommandLib2.systemPrint("Loaded " + file.getName() + " needing: " + requirements);
 
             } catch (Exception e) {
                 System.err.println("Failed to load metadata for " + file.getName() + ": " + e.getMessage());
@@ -97,6 +99,11 @@ public class PythonManager {
             return;
         }
 
+        if (!validateContext(info, context)) {
+            System.err.println("Aborting execution of " + scriptName + ". Missing required variables in context.");
+            return;
+        }
+
         JepConfig config = new JepConfig();
         config.addIncludePaths(scriptFolder.getAbsolutePath());
 
@@ -113,6 +120,28 @@ public class PythonManager {
             System.err.println("Error executing script " + scriptName);
             e.printStackTrace();
         }
+    }
+
+    // TODO: use thenAccept/exceptionally
+    public static CompletableFuture<Void> executeScriptAsync(String scriptName, Map<String, Object> context) {
+        return CompletableFuture.runAsync(() -> executeScript(scriptName, context));
+    }
+
+    private static boolean validateContext(ScriptInfo info, Map<String, Object> context) {
+        if (info.getRequiredVars().isEmpty()) return true;
+
+        if (context == null) {
+            SteveCommandLib2.systemPrint("Warning: Context is null but script requires: " + info.getRequiredVars());
+            return false;
+        }
+
+        for (String req : info.getRequiredVars()) {
+            if (!context.containsKey(req)) {
+                SteveCommandLib2.systemPrint("Missing variable in python context: " + req);
+                return false;
+            }
+        }
+        return true;
     }
 
     public static List<String> getLoadedScriptNames() {
