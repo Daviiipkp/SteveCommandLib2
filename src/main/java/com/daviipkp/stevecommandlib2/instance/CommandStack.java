@@ -19,16 +19,16 @@ public class CommandStack extends ParallelCommand {
     @Override
     public void execute(long delta) {
         if(!queuedCommands.isEmpty()) {
-            if(queuedCommands.get(0).isRunning()) {
-                queuedCommands.get(0).execute(delta);
-                if(queuedCommands.get(0).isFinished()) {
-                    queuedCommands.remove(0);
+            if(queuedCommands.getFirst().isRunning()) {
+                queuedCommands.getFirst().execute(delta);
+                if(queuedCommands.getFirst().isFinished()) {
+                    queuedCommands.removeFirst();
                 }
             }else{
-                queuedCommands.get(0).start();
-                queuedCommands.get(0).execute(delta);
-                if(queuedCommands.get(0).isFinished()) {
-                    queuedCommands.remove(0);
+                queuedCommands.getFirst().start();
+                queuedCommands.getFirst().execute(delta);
+                if(queuedCommands.getFirst().isFinished()) {
+                    queuedCommands.removeFirst();
                 }
             }
         }else{
