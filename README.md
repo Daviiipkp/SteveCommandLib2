@@ -34,7 +34,7 @@ When you are done, or if the application is shutting down, gracefully stop the e
 ```
 engine.stop();
 ```
-Command Types
+### Command Types
 You can add commands to the engine using engine.addCommand(yourCommand). The engine handles them differently based on their base class:
 
 - QueuedCommand: These commands are added to a single-file line. The engine will execute the first one in the queue, wait for it to finish (when isFinished() returns true), and only then move on to the next.
@@ -43,7 +43,7 @@ You can add commands to the engine using engine.addCommand(yourCommand). The eng
 
 - TriggeredCommand: These are kept in a separate list and get ticked every cycle. They are useful for commands that need to wait for a specific condition or event before doing their job.
 
-Python Integration
+### Python Integration
 If your project requires running external Python scripts, use the PythonManager. It scans a folder for .py files, reads their required context variables (if they define a REQUIRED_VARS list), and executes them safely.
 
 ```
@@ -58,7 +58,7 @@ PythonManager.loadScripts();
 Map<String, Object> context = Map.of("player_name", "Steve", "health", 100);
 PythonManager.executeScript("heal_player.py", context);
 ```
-JSON Registry
+### JSON Registry
 The Jsoning class makes it easy to convert text into runnable commands. If you annotate your command classes with @CommandDescribe, you can register an entire package at once.
 ```
 import com.daviipkp.stevecommandlib2.Jsoning;
